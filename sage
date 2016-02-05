@@ -73,6 +73,10 @@ OPERATIONS
     cache.
 
 OPTIONS
+  --upgrade
+    Install even if already installed. this is useful if you have run
+    ‘sage update’ and would like to install the new version.
+
   --nodeps
     Specify this option to skip all dependency checks.
 
@@ -404,10 +408,13 @@ function sage-install {
   for pkg in "${pks[@]}"
   do
 
-  if grep -q "^$pkg " /etc/setup/installed.db
+  if [ ! -v upgrade ]
   then
-    echo Package $pkg is already installed, skipping
-    continue
+    if grep -q "^$pkg " /etc/setup/installed.db
+    then
+      echo Package $pkg is already installed, skipping
+      continue
+    fi
   fi
   (( sbq++ )) && echo
   echo Installing $pkg
@@ -587,6 +594,11 @@ do
 
     --nodeps)
       nodeps=1
+      shift
+    ;;
+
+    --upgrade)
+      upgrade=1
       shift
     ;;
 
