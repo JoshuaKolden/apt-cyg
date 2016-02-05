@@ -156,14 +156,14 @@ function warn {
   printf '\e[1;31m%s\e[m\n' "$*" >&2
 }
 
-function apt-update {
+function sage-update {
   if find-workspace
   then
     get-setup
   fi
 }
 
-function apt-category {
+function sage-category {
   check-packages
   find-workspace
   for pkg in "${pks[@]}"
@@ -179,7 +179,7 @@ function apt-category {
   done
 }
 
-function apt-list {
+function sage-list {
   local sbq
   for pkg in "${pks[@]}"
   do
@@ -190,7 +190,7 @@ function apt-list {
   awk 'NR>1 && $0=$1' /etc/setup/installed.db
 }
 
-function apt-listall {
+function sage-listall {
   check-packages
   find-workspace
   local sbq
@@ -201,7 +201,7 @@ function apt-listall {
   done
 }
 
-function apt-listfiles {
+function sage-listfiles {
   check-packages
   find-workspace
   local pkg sbq
@@ -216,7 +216,7 @@ function apt-listfiles {
   done
 }
 
-function apt-show {
+function sage-show {
   find-workspace
   check-packages
   for pkg in "${pks[@]}"
@@ -235,7 +235,7 @@ function apt-show {
   done
 }
 
-function apt-depends {
+function sage-depends {
   find-workspace
   check-packages
   for pkg in "${pks[@]}"
@@ -270,7 +270,7 @@ function apt-depends {
   done
 }
 
-function apt-rdepends {
+function sage-rdepends {
   find-workspace
   for pkg in "${pks[@]}"
   do
@@ -304,7 +304,7 @@ function apt-rdepends {
   done
 }
 
-function apt-download {
+function sage-download {
   check-packages
   find-workspace
   local pkg sbq
@@ -360,7 +360,7 @@ function download {
   echo $dn $bn > /tmp/dwn
 }
 
-function apt-search {
+function sage-search {
   check-packages
   echo Searching downloaded packages...
   for pkg in "${pks[@]}"
@@ -381,7 +381,7 @@ function apt-search {
   done
 }
 
-function apt-searchall {
+function sage-searchall {
   cd /tmp
   for pkg in "${pks[@]}"
   do
@@ -397,7 +397,7 @@ function apt-searchall {
   done
 }
 
-function apt-install {
+function sage-install {
   check-packages
   find-workspace
   local pkg dn bn requires wr package sbq script
@@ -472,7 +472,7 @@ function apt-install {
   done
 }
 
-function apt-remove {
+function sage-remove {
   check-packages
   cd /etc
   cygcheck awk bash bunzip2 grep gzip mv sed tar xz > setup/essential.lst
@@ -532,7 +532,7 @@ function apt-remove {
   done
 }
 
-function apt-mirror {
+function sage-mirror {
   if [ "$pks" ]
   then
     awk -i inplace '
@@ -553,7 +553,7 @@ function apt-mirror {
   fi
 }
 
-function apt-cache {
+function sage-cache {
   if [ "$pks" ]
   then
     vas=$(cygpath -aw "$pks")
@@ -626,10 +626,10 @@ done
 
 set -a
 
-if type -t apt-$command | grep -q function
+if type -t sage-$command | grep -q function
 then
   readonly arch=${HOSTTYPE/i6/x}
-  apt-$command
+  sage-$command
 else
   printf "$usage"
 fi
