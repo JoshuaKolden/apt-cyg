@@ -84,7 +84,7 @@ OPTIONS
     Display version and exit.
 "
 
-function wget {
+wget() {
   if command wget -h &>/dev/null
   then
     command wget "$@"
@@ -95,7 +95,7 @@ function wget {
   fi
 }
 
-function find-workspace {
+find-workspace() {
   # default working directory and mirror
   
   # work wherever setup worked last, if possible
@@ -131,7 +131,7 @@ function find-workspace {
   fi
 }
 
-function get-setup {
+get-setup() {
   touch setup.ini
   mv setup.ini setup.ini-save
   wget -N $mirror/$arch/setup.bz2
@@ -146,7 +146,7 @@ function get-setup {
   fi
 }
 
-function check-packages {
+check-packages() {
   if [[ $pks ]]
   then
     return 0
@@ -156,18 +156,18 @@ function check-packages {
   fi
 }
 
-function warn {
+warn() {
   printf '\e[1;31m%s\e[m\n' "$*" >&2
 }
 
-function sage-update {
+sage-update() {
   if find-workspace
   then
     get-setup
   fi
 }
 
-function sage-category {
+sage-category() {
   check-packages
   find-workspace
   for pkg in "${pks[@]}"
@@ -183,7 +183,7 @@ function sage-category {
   done
 }
 
-function sage-list {
+sage-list() {
   local sbq
   for pkg in "${pks[@]}"
   do
@@ -194,7 +194,7 @@ function sage-list {
   awk 'NR>1 && $0=$1' /etc/setup/installed.db
 }
 
-function sage-listall {
+sage-listall() {
   check-packages
   find-workspace
   local sbq
@@ -205,7 +205,7 @@ function sage-listall {
   done
 }
 
-function sage-listfiles {
+sage-listfiles() {
   check-packages
   find-workspace
   local pkg sbq
@@ -220,7 +220,7 @@ function sage-listfiles {
   done
 }
 
-function sage-show {
+sage-show() {
   find-workspace
   check-packages
   for pkg in "${pks[@]}"
@@ -239,7 +239,7 @@ function sage-show {
   done
 }
 
-function sage-depends {
+sage-depends() {
   find-workspace
   check-packages
   for pkg in "${pks[@]}"
@@ -274,7 +274,7 @@ function sage-depends {
   done
 }
 
-function sage-rdepends {
+sage-rdepends() {
   find-workspace
   for pkg in "${pks[@]}"
   do
@@ -308,7 +308,7 @@ function sage-rdepends {
   done
 }
 
-function sage-download {
+sage-download() {
   check-packages
   find-workspace
   local pkg sbq
@@ -319,7 +319,7 @@ function sage-download {
   done
 }
 
-function download {
+download() {
   local pkg digest digactual
   pkg=$1
   # look for package and save desc file
@@ -364,7 +364,7 @@ function download {
   echo $dn $bn > /tmp/dwn
 }
 
-function sage-search {
+sage-search() {
   check-packages
   echo Searching downloaded packages...
   for pkg in "${pks[@]}"
@@ -385,7 +385,7 @@ function sage-search {
   done
 }
 
-function sage-searchall {
+sage-searchall() {
   cd /tmp
   for pkg in "${pks[@]}"
   do
@@ -401,7 +401,7 @@ function sage-searchall {
   done
 }
 
-function sage-install {
+sage-install() {
   check-packages
   find-workspace
   local pkg dn bn requires wr package sbq script
@@ -479,7 +479,7 @@ function sage-install {
   done
 }
 
-function sage-remove {
+sage-remove() {
   check-packages
   cd /etc
   cygcheck awk bash bunzip2 grep gzip mv sed tar xz > setup/essential.lst
@@ -539,7 +539,7 @@ function sage-remove {
   done
 }
 
-function sage-mirror {
+sage-mirror() {
   if [ "$pks" ]
   then
     awk -i inplace '
@@ -560,7 +560,7 @@ function sage-mirror {
   fi
 }
 
-function sage-cache {
+sage-cache() {
   if [ "$pks" ]
   then
     vas=$(cygpath -aw "$pks")
