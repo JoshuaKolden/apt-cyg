@@ -85,7 +85,7 @@ OPTIONS
 "
 
 wget() {
-  if command wget -h &>/dev/null
+  if command wget -h 2>&1 >/dev/null
   then
     command wget "$@"
   else
@@ -95,7 +95,7 @@ wget() {
   fi
 }
 
-find-workspace() {
+find_workspace() {
   # default working directory and mirror
   
   # work wherever setup worked last, if possible
@@ -126,12 +126,12 @@ find-workspace() {
   then
     return 0
   else
-    get-setup
+    get_setup
     return 1
   fi
 }
 
-get-setup() {
+get_setup() {
   touch setup.ini
   mv setup.ini setup.ini-save
   wget -N $mirror/$arch/setup.bz2
@@ -146,7 +146,7 @@ get-setup() {
   fi
 }
 
-check-packages() {
+check_packages() {
   if [[ $pks ]]
   then
     return 0
@@ -160,16 +160,16 @@ warn() {
   printf '\e[1;31m%s\e[m\n' "$*" >&2
 }
 
-sage-update() {
-  if find-workspace
+_update() {
+  if find_workspace
   then
-    get-setup
+    get_setup
   fi
 }
 
-sage-category() {
-  check-packages
-  find-workspace
+_category() {
+  check_packages
+  find_workspace
   for pkg in "${pks[@]}"
   do
     awk '
@@ -183,7 +183,7 @@ sage-category() {
   done
 }
 
-sage-list() {
+_list() {
   local sbq
   for pkg in "${pks[@]}"
   do
@@ -194,9 +194,9 @@ sage-list() {
   awk 'NR>1 && $0=$1' /etc/setup/installed.db
 }
 
-sage-listall() {
-  check-packages
-  find-workspace
+_listall() {
+  check_packages
+  find_workspace
   local sbq
   for pkg in "${pks[@]}"
   do
@@ -205,9 +205,9 @@ sage-listall() {
   done
 }
 
-sage-listfiles() {
-  check-packages
-  find-workspace
+_listfiles() {
+  check_packages
+  find_workspace
   local pkg sbq
   for pkg in "${pks[@]}"
   do
@@ -220,9 +220,9 @@ sage-listfiles() {
   done
 }
 
-sage-show() {
-  find-workspace
-  check-packages
+_show() {
+  find_workspace
+  check_packages
   for pkg in "${pks[@]}"
   do
     (( notfirst++ )) && echo
@@ -239,9 +239,9 @@ sage-show() {
   done
 }
 
-sage-depends() {
-  find-workspace
-  check-packages
+_depends() {
+  find_workspace
+  check_packages
   for pkg in "${pks[@]}"
   do
     awk '
@@ -274,8 +274,8 @@ sage-depends() {
   done
 }
 
-sage-rdepends() {
-  find-workspace
+_rdepends() {
+  find_workspace
   for pkg in "${pks[@]}"
   do
     awk '
@@ -308,9 +308,9 @@ sage-rdepends() {
   done
 }
 
-sage-download() {
-  check-packages
-  find-workspace
+_download() {
+  check_packages
+  find_workspace
   local pkg sbq
   for pkg in "${pks[@]}"
   do
@@ -364,8 +364,8 @@ download() {
   echo $dn $bn > /tmp/dwn
 }
 
-sage-search() {
-  check-packages
+_search() {
+  check_packages
   echo Searching downloaded packages...
   for pkg in "${pks[@]}"
   do
@@ -385,7 +385,7 @@ sage-search() {
   done
 }
 
-sage-searchall() {
+_searchall() {
   cd /tmp
   for pkg in "${pks[@]}"
   do
@@ -401,9 +401,9 @@ sage-searchall() {
   done
 }
 
-sage-install() {
-  check-packages
-  find-workspace
+_install() {
+  check_packages
+  find_workspace
   local pkg dn bn requires wr package sbq script
   for pkg in "${pks[@]}"
   do
@@ -479,8 +479,8 @@ sage-install() {
   done
 }
 
-sage-remove() {
-  check-packages
+_remove() {
+  check_packages
   cd /etc
   cygcheck awk bash bunzip2 grep gzip mv sed tar xz > setup/essential.lst
   for pkg in "${pks[@]}"
@@ -539,7 +539,7 @@ sage-remove() {
   done
 }
 
-sage-mirror() {
+_mirror() {
   if [ "$pks" ]
   then
     awk -i inplace '
@@ -560,7 +560,7 @@ sage-mirror() {
   fi
 }
 
-sage-cache() {
+_cache() {
   if [ "$pks" ]
   then
     vas=$(cygpath -aw "$pks")
@@ -638,10 +638,10 @@ done
 
 set -a
 
-if type -t sage-$command | grep -q function
+if type -t _$command | grep -q function
 then
   readonly arch=${HOSTTYPE/i6/x}
-  sage-$command
+  _$command
 else
   printf "$usage"
 fi
