@@ -115,10 +115,7 @@ find_workspace() {
     print $1
   }
   ' /etc/setup/setup.rc)
-  mirrordir=$(sed '
-  s / %2f g
-  s : %3a g
-  ' <<< "$mirror")
+  mirrordir=$(echo "$mirror" | sed 's./.%2f.g; s.:.%3a.g')
 
   mkdir -p "$cache/$mirrordir/$arch"
   cd "$cache/$mirrordir/$arch"
@@ -147,7 +144,7 @@ get_setup() {
 }
 
 check_packages() {
-  if [[ $pks ]]
+  if [ -v pks ]
   then
     return 0
   else
