@@ -184,10 +184,18 @@ _list() {
   local sbq
   for pkg in "${pks[@]}"
   do
-    let sbq++ && echo
+    if [ -v sbq ]
+    then
+      echo
+    else
+      sbq=
+    fi
     awk 'NR>1 && $1~pkg && $0=$1' pkg="$pkg" /etc/setup/installed.db
   done
-  let sbq && return
+  if [ -v sbq ]
+  then
+    return
+  fi
   awk 'NR>1 && $0=$1' /etc/setup/installed.db
 }
 
@@ -197,7 +205,12 @@ _listall() {
   local sbq
   for pkg in "${pks[@]}"
   do
-    let sbq++ && echo
+    if [ -v sbq ]
+    then
+      echo
+    else
+      sbq=
+    fi
     awk '$1~pkg && $0=$1' RS='\n\n@ ' FS='\n' pkg="$pkg" setup.ini
   done
 }
@@ -208,7 +221,12 @@ _listfiles() {
   local pkg sbq
   for pkg in "${pks[@]}"
   do
-    (( sbq++ )) && echo
+    if [ -v sbq ]
+    then
+      echo
+    else
+      sbq=
+    fi
     if [ ! -e /etc/setup/"$pkg".lst.gz ]
     then
       download "$pkg"
@@ -220,9 +238,15 @@ _listfiles() {
 _show() {
   find_workspace
   check_packages
+  local sbq
   for pkg in "${pks[@]}"
   do
-    (( notfirst++ )) && echo
+    if [ -v sbq ]
+    then
+      echo
+    else
+      sbq=
+    fi
     awk '
     $1 == query {
       print
@@ -311,7 +335,12 @@ _download() {
   local pkg sbq
   for pkg in "${pks[@]}"
   do
-    (( sbq++ )) && echo
+    if [ -v sbq ]
+    then
+      echo
+    else
+      sbq=
+    fi
     download "$pkg"
   done
 }
@@ -332,8 +361,7 @@ download() {
 
   # pick the latest version, which comes first
   set -- $(awk '$1 == "install:"' desc)
-  if (( ! $# ))
-  then
+  if [ $# = 0 ]
     echo 'Could not find "install" in package description: obsolete package?'
     exit 1
   fi
