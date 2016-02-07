@@ -144,7 +144,7 @@ get_setup() {
 }
 
 check_packages() {
-  if [ -v pks ]
+  if [ "$pks" ]
   then
     return 0
   else
@@ -184,15 +184,15 @@ _list() {
   local sbq
   for pkg in "${pks[@]}"
   do
-    if [ -v sbq ]
+    if [ "$sbq" ]
     then
       echo
     else
-      sbq=
+      sbq=1
     fi
     awk 'NR>1 && $1~pkg && $0=$1' pkg="$pkg" /etc/setup/installed.db
   done
-  if [ -v sbq ]
+  if [ "$sbq" ]
   then
     return
   fi
@@ -205,11 +205,11 @@ _listall() {
   local sbq
   for pkg in "${pks[@]}"
   do
-    if [ -v sbq ]
+    if [ "$sbq" ]
     then
       echo
     else
-      sbq=
+      sbq=1
     fi
     awk '$1~pkg && $0=$1' RS='\n\n@ ' FS='\n' pkg="$pkg" setup.ini
   done
@@ -221,11 +221,11 @@ _listfiles() {
   local pkg sbq
   for pkg in "${pks[@]}"
   do
-    if [ -v sbq ]
+    if [ "$sbq" ]
     then
       echo
     else
-      sbq=
+      sbq=1
     fi
     if [ ! -e /etc/setup/"$pkg".lst.gz ]
     then
@@ -241,11 +241,11 @@ _show() {
   local sbq
   for pkg in "${pks[@]}"
   do
-    if [ -v sbq ]
+    if [ "$sbq" ]
     then
       echo
     else
-      sbq=
+      sbq=1
     fi
     awk '
     $1 == query {
@@ -335,11 +335,11 @@ _download() {
   local pkg sbq
   for pkg in "${pks[@]}"
   do
-    if [ -v sbq ]
+    if [ "$sbq" ]
     then
       echo
     else
-      sbq=
+      sbq=1
     fi
     download "$pkg"
   done
@@ -380,11 +380,11 @@ download() {
   if ! test -e $bn || ! $hash -c <<< "$digest $bn"
   then
     wget -O $bn $mirror/$dn/$bn
-    $hash -c <<< "$digest $bn" || exit
+    echo "$digest $bn" | $hash -c || exit
   fi
 
   tar tf $bn | gzip > /etc/setup/"$pkg".lst.gz
-  cd ~-
+  cd "$OLDPWD"
   mv desc "$cache/$mirrordir/$dn"
   echo $dn $bn > /tmp/dwn
 }
@@ -395,15 +395,15 @@ _search() {
   for pkg in "${pks[@]}"
   do
     key=$(type -P "$pkg" | sed s./..)
-    [[ $key ]] || key=$pkg
+    if [ -z "$key" ]
+    then
+      key=$pkg
+    fi
     for manifest in /etc/setup/*.lst.gz
     do
       if gzip -cd $manifest | grep -q "$key"
       then
-        package=$(sed '
-        s,/etc/setup/,,
-        s,.lst.gz,,
-        ' <<< $manifest)
+        package=$(echo "$manifest" | sed 's,/etc/setup/,,; s,.lst.gz,,')
         echo $package
       fi
     done
@@ -441,7 +441,12 @@ _install() {
       continue
     fi
   fi
-  (( sbq++ )) && echo
+  if [ "$sbq" ]
+  then
+    echo
+  else
+    sbq=1
+  fi
   echo Installing $pkg
 
   download $pkg
@@ -465,13 +470,16 @@ _install() {
   mv /etc/setup/installed.db /etc/setup/installed.db-save
   mv /tmp/awk.$$ /etc/setup/installed.db
 
-  [ -v nodeps ] && continue
+  if [ "$nodeps" ]
+  then
+    continue
+  fi
   # recursively install required packages
 
   requires=$(awk '$1=="requires", $0=$2' FS=': ' desc)
-  cd ~-
+  cd "$OLDPWD"
   wr=0
-  if [[ $requires ]]
+  if [ "$requires" ]
   then
     echo Package $pkg requires the following packages, installing:
     echo $requires
@@ -482,17 +490,20 @@ _install() {
         echo Package $package is already installed, skipping
         continue
       fi
-      sage install --noscripts $package || (( wr++ ))
+      sage install --noscripts $package || wr=1
     done
   fi
-  if (( wr ))
+  if [ wr = 1 ]
   then
     echo some required packages did not install, continuing
   fi
 
   # run all postinstall scripts
 
-  [ -v noscripts ] && continue
+  if [ "$noscripts" ]
+  then
+    continue
+  fi
   find /etc/postinstall -name '*.sh' | while read script
   do
     echo Running $script
@@ -644,7 +655,7 @@ do
 
     list | cache  | remove | depends | listall  | download | listfiles |\
     show | mirror | search | install | category | rdepends | searchall )
-      if [[ $command ]]
+      if [ "$command" ]
       then
         pks+=("$1")
       else
@@ -663,7 +674,7 @@ done
 
 set -a
 
-if [ -v command ]
+if [ "$command" ]
 then
   readonly arch=$(arch | sed s.i6.x.)
   _"$command"
