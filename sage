@@ -596,15 +596,16 @@ _mirror() {
 _cache() {
   if [ "$pks" ]
   then
-    vas=$(cygpath -aw "$pks")
+    xr=$(cygpath -aw "$pks")
+    ya=$(echo "$xr" | sed 's \\ \\\\ g')
     awk -i inplace '
     1
     /last-cache/ {
       getline
-      print "\t" vas
+      print "\t" ya
     }
-    ' vas="${vas//\\/\\\\}" /etc/setup/setup.rc
-    echo Cache set to "$vas".
+    ' ya="$ya" /etc/setup/setup.rc
+    echo "Cache set to ‘$xr’"
   else
     awk '
     /last-cache/ {
