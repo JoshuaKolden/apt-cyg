@@ -378,7 +378,7 @@ download() {
   esac
   mkdir -p "$cache/$mirrordir/$dn"
   cd "$cache/$mirrordir/$dn"
-  if ! test -e $bn || ! $hash -c <<< "$digest $bn"
+  if ! test -e $bn || ! echo "$digest $bn" | $hash -c
   then
     wget -O $bn $mirror/$dn/$bn
     echo "$digest $bn" | $hash -c || exit
@@ -395,14 +395,9 @@ _search() {
   echo Searching downloaded packages...
   for pkg in "${pks[@]}"
   do
-    key=$(type -P "$pkg" | sed s./..)
-    if [ -z "$key" ]
-    then
-      key=$pkg
-    fi
     for manifest in /etc/setup/*.lst.gz
     do
-      if gzip -cd $manifest | grep -q "$key"
+      if gzip -cd $manifest | grep -q "$pkg"
       then
         package=$(echo "$manifest" | sed 's,/etc/setup/,,; s,.lst.gz,,')
         echo $package
@@ -412,19 +407,20 @@ _search() {
 }
 
 _searchall() {
-  cd /tmp
-  for pkg in "${pks[@]}"
-  do
-    printf -v qs 'text=1&arch=%s&grep=%s' $arch "$pkg"
-    wget -O matches cygwin.com/cgi-bin2/package-grep.cgi?"$qs"
-    awk '
-    NR == 1 {next}
-    mc[$1]++ {next}
-    /-debuginfo-/ {next}
-    /^cygwin32-/ {next}
-    {print $1}
-    ' FS=-[[:digit:]] matches
-  done
+  rsc=$(awk '
+  BEGIN {
+    printf "cygwin.com/cgi-bin2/package-grep.cgi?text=1&arch=%s&grep=%s",
+    ARGV[1], ARGV[2]
+  }
+  ' $arch $pks)
+  wget -O /tmp/matches "$rsc"
+  awk '
+  NR == 1 {next}
+  mc[$1]++ {next}
+  /-debuginfo-/ {next}
+  /^cygwin32-/ {next}
+  {print $1}
+  ' FS=-[[:digit:]] /tmp/matches
 }
 
 _install() {
@@ -543,7 +539,7 @@ _remove() {
   $NF in ess {
     exit 1
   }
-  ' FS='[/\\\\]' setup/{essential,$pkg}.lst
+  ' FS='[/\\\\]' setup/*.lst
   esn=$?
   if [ $esn = 0 ]
   then
