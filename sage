@@ -362,6 +362,7 @@ download() {
   # pick the latest version, which comes first
   set -- $(awk '$1 == "install:"' desc)
   if [ $# = 0 ]
+  then
     echo 'Could not find "install" in package description: obsolete package?'
     exit 1
   fi
