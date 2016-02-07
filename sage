@@ -635,10 +635,10 @@ done
 
 set -a
 
-if type -t _$command | grep -q function
+if [ -v command ]
 then
-  readonly arch=${HOSTTYPE/i6/x}
-  _$command
+  readonly arch=$(arch | sed s.i6.x.)
+  _"$command"
 else
   printf "$usage"
 fi
