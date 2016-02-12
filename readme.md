@@ -6,7 +6,8 @@ The apt-cyg project and bash script was renamed to Sage on January 23, 2016.
 
 This repo is an attempt to restore a correct working copy of apt-cyg, and repair the improperly removed license.
 
-Commit b6076c2 is apt-cyg prior to the rename and license removal/
+Commit b6076c2 is apt-cyg prior to the rename and license removal.
+
 Commit 6f0fd05 is the most recent commit after the name change.
 
 # README for apt-cyg and Sage
